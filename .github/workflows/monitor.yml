@@ -35,6 +35,10 @@ jobs:
         run: |
           git config user.name "k9-monitor[bot]"
           git config user.email "k9-monitor@users.noreply.github.com"
-          git add known-dogs.json || true
-          git diff --cached --quiet || git commit -m "chore: update known dogs list [skip ci]"
-          git push || true
+          if [ -f known-dogs.json ]; then
+            git add known-dogs.json
+            git diff --cached --quiet || git commit -m "chore: update known dogs list [skip ci]"
+            git push
+          else
+            echo "No known-dogs.json yet, skipping commit"
+          fi
