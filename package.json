@@ -7,18 +7,6 @@
     "check": "node check.js"
   },
   "dependencies": {
-    "nodemailer": "^6.9.0"
-  }
-}
-{
-  "name": "k9-monitor",
-  "version": "1.0.0",
-  "description": "Monitors CCI K9 adoption page for new dogs",
-  "main": "check.js",
-  "scripts": {
-    "check": "node check.js"
-  },
-  "dependencies": {
     "nodemailer": "^6.9.0",
     "playwright": "^1.44.0"
   }
