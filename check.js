@@ -1,23 +1,27 @@
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
 
 const STATE_FILE = path.join(__dirname, "known-dogs.json");
-const K9_URL = "https://cci.colorado.gov/K9";
 const BASE_URL = "https://cci.colorado.gov";
 
 const EMAIL_FROM = process.env.EMAIL_FROM;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const SMS_ADDRESS = process.env.SMS_ADDRESS;
+const WORKER_URL = process.env.WORKER_URL;
 
-async function fetchPage() {
-  const { chromium } = require("playwright");
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  await page.goto(K9_URL, { waitUntil: "networkidle" });
-  const html = await page.content();
-  await browser.close();
-  return html;
+function fetchPage() {
+  const url = `${WORKER_URL}?token=k9monitor2024`;
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        console.log(`Fetched ${data.length} bytes, status ${res.statusCode}`);
+        resolve(data);
+      });
+    }).on("error", reject);
+  });
 }
 
 function parseDogs(html) {
@@ -72,13 +76,12 @@ async function main() {
   console.log(`[${new Date().toISOString()}] Checking CCI K9 page...`);
 
   const html = await fetchPage();
-  console.log(`Fetched ${html.length} bytes`);
 
   const currentDogs = parseDogs(html);
   console.log(`Found ${currentDogs.length} dogs on page.`);
 
   if (currentDogs.length === 0) {
-    console.log("No dogs parsed — page structure may have changed.");
+    console.log("No dogs parsed — dumping snippet:");
     console.log(html.substring(0, 2000));
     return;
   }
